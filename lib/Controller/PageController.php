@@ -132,8 +132,10 @@ class PageController extends Controller {
 
 		$params = [
 			'token' => $token,
-			'signaling-server' => $this->config->getSignalingServer(),
-			'signaling-ticket' => $this->config->getSignalingTicket($this->userId),
+			'signaling-settings' => [
+				'server' => $this->config->getSignalingServer(),
+				'ticket' => $this->config->getSignalingTicket($this->userId),
+			],
 		];
 		$response = new TemplateResponse($this->appName, 'index', $params);
 		$csp = new ContentSecurityPolicy();
@@ -162,8 +164,10 @@ class PageController extends Controller {
 
 		$params = [
 			'token' => $token,
-			'signaling-server' => $this->config->getSignalingServer(),
-			'signaling-ticket' => $this->config->getSignalingTicket($this->userId),
+			'signaling-settings' => [
+				'server' => $this->config->getSignalingServer(),
+				'ticket' => $this->config->getSignalingTicket($this->userId),
+			],
 		];
 		$response = new TemplateResponse($this->appName, 'index-public', $params, 'base');
 		$csp = new ContentSecurityPolicy();
