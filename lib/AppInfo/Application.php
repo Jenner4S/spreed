@@ -21,6 +21,7 @@
 
 namespace OCA\Spreed\AppInfo;
 
+use OCA\Spreed\BackendNotifier;
 use OCA\Spreed\Room;
 use OCA\Spreed\Signaling\Messages;
 use OCP\AppFramework\App;
@@ -48,5 +49,38 @@ class Application extends App {
 		$dispatcher->addListener(Room::class . '::postRemoveUser', $listener);
 		$dispatcher->addListener(Room::class . '::postRemoveBySession', $listener);
 		$dispatcher->addListener(Room::class . '::postUserDisconnectRoom', $listener);
+
+
+		$dispatcher = $this->getContainer()->getServer()->getEventDispatcher();
+		$dispatcher->addListener(Room::class . '::postAddUsers', function(GenericEvent $event) {
+			/** @var BackendNotifier $notifier */
+			$notifier = $this->getContainer()->query(BackendNotifier::class);
+
+			$room = $event->getSubject();
+			$participants= $event->getArgument('users');
+			$notifier->roomInvited($room, $participants);
+		});
+		$dispatcher->addListener(Room::class . '::postSetName', function(GenericEvent $event) {
+			/** @var BackendNotifier $notifier */
+			$notifier = $this->getContainer()->query(BackendNotifier::class);
+
+			$room = $event->getSubject();
+			$notifier->roomModified($room);
+		});
+		$dispatcher->addListener(Room::class . '::preDeleteRoom', function(GenericEvent $event) {
+			/** @var BackendNotifier $notifier */
+			$notifier = $this->getContainer()->query(BackendNotifier::class);
+
+			$room = $event->getSubject();
+			$notifier->roomDeleted($room);
+		});
+		$dispatcher->addListener(Room::class . '::postRemoveUser', function(GenericEvent $event) {
+			/** @var BackendNotifier $notifier */
+			$notifier = $this->getContainer()->query(BackendNotifier::class);
+
+			$room = $event->getSubject();
+			$user = $event->getArgument('user');
+			$notifier->roomsDisinvited($room, [$user->getUID()]);
+		});
 	}
 }
